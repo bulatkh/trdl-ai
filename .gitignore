@@ -1,0 +1,13 @@
+# notebooks and checkpoints
+.ipynb_checkpoints/
+
+# data
+*data/
+
+# models, logs and results
+model_weights/
+results/
+train_logs/
+
+# cache
+*__pycache__*

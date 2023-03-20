@@ -1,0 +1,66 @@
+### All positions using CYCLING for training only
+###
+model:
+  cae:
+    from_module: cae
+    encoder_class_name: Autoencoder
+    encoder_name: cae
+    args: []
+    kwargs:
+      kernel_size: 7
+      padding: 3
+      out_channels: [64, 128, 256]
+      latent_size: 256
+      noise_val: 0.3
+      
+      lr: 0.0001
+      optimizer_name: "adam"
+
+experiment:
+  num_epochs: 100
+  batch_size: 64
+  sensors: ['ACCELEROMETER', 'GYROSCOPE']
+
+  # pre-processing parameters
+  align: True
+  desired_freq: 33
+  len_ts: 3
+  norm_apply: True
+  norm_param: null
+  # prediction
+  prediction_type: "reconstruction_error"
+
+  # data splits
+
+  data_splits_autoencoder:
+  cross_val: False
+  use_validation: False
+  
+  train_subjects: ['amagross']
+  train_activities: 
+    CYCLING: [
+      'PANTS_POCKET',
+      # 'JERSEY_POCKET',
+      # 'BACKPACK'
+    ]
+    WALKING: null
+    RUNNING: null
+    DRIVING: null
+    SCOOTERING: null
+  
+
+  val_subjects: null
+  val_activities: null
+  val_positions: null
+
+  test_subjects:  ['Denys']
+  test_activities:
+    CYCLING: [
+      'PANTS_POCKET',
+      # 'JERSEY_POCKET',
+      # 'BACKPACK'
+    ]
+    WALKING: 'all'
+    RUNNING: 'all'
+    DRIVING: 'all'
+    SCOOTERING: 'all'
