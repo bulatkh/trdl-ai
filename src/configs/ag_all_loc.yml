@@ -17,7 +17,7 @@ model:
       optimizer_name: "adam"
 
 experiment:
-  num_epochs: 100
+  num_epochs: 10
   batch_size: 64
   sensors: ['ACCELEROMETER', 'GYROSCOPE']
 
@@ -33,7 +33,7 @@ experiment:
   # data splits
 
   data_splits_autoencoder:
-  cross_val: False
+  loso_cv: False
   use_validation: False
   
   train_subjects: ['amagross']

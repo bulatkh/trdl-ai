@@ -16,6 +16,7 @@ from sklearn.manifold import TSNE
 from sklearn.metrics import classification_report
 # from torch.utils.mobile_optimizer import optimize_for_mobile
 from torchvision import transforms
+import random
 
 from callbacks.recontruction_vis import ReconstructionVis
 from models.conv_ae import Autoencoder
@@ -117,7 +118,12 @@ def train_test_autoencoder(args, config):
     # trainer = Trainer.from_argparse_args(args=args, gpus=1, deterministic=True, max_epochs=num_epochs, default_root_dir='logs', callbacks=[checkpoint_callback])
 
     trainer.fit(cae, datamodule)
-    trainer.test(cae, datamodule)
+    if val_subjects is None:
+        trainer.test(cae, dataloaders=datamodule.test_dataloader())
+    else:
+        trainer.test(cae, dataloaders=datamodule.val_dataloader())
+
+    print(trainer.callback_metrics.items())
 
     return cae
 
@@ -232,14 +238,38 @@ def main():
     seed_everything(28)
     args = parse_arguments()
     config = load_yaml_to_dict(args.experiment_config)
-    cae = train_test_autoencoder(args, config)
-    cae.eval()
-    train_inp, test_inp, train_feat, test_feat, train_label, test_label = extract_features(args, config, cae)
-    if config['experiment']['prediction_type'] == 'reconstruction_error':
-        reconstruction_thresholding(test_inp, test_label, test_feat)
-    elif config['experiment']['prediction_type'] == 'oc-svm':
-        train_test_one_class_svm(args, config, train_feat.detach().numpy(), test_feat.detach().numpy(), train_label, test_label)
-    
+    if config['experiment']['loso_cv']:
+        cross_val_subjects = config['experiment']['loso_cv_subjects']
+        if len(cross_val_subjects) in {0, 1}:
+            return ValueError('Provide at least 2 values')
+        elif len(cross_val_subjects) == 2:
+            # not a good scenario, because it uses test error for thresholding
+            folds = [([cross_val_subjects[0]], None, [cross_val_subjects[1]]), ([cross_val_subjects[1]], None, [cross_val_subjects[0]])]
+        else:
+            folds = []
+            # leave-one-subject-out cross-validation: one subject for test, one subject for val (randomly sampled from train_val), remaining for train
+            for i in range(len(cross_val_subjects)):
+                test_sub = cross_val_subjects[i]
+                train_sub = [sub for sub in cross_val_subjects if sub != test_sub]
+                val_sub = train_sub.pop(random.randrange(len(train_sub)))
+                folds.append((train_sub, [val_sub], [test_sub]))
+        num_runs = len(cross_val_subjects)
+        print(folds)
+    else:
+        num_runs = 1
+    for run in range(num_runs):
+        if config['experiment']['loso_cv']:
+            config['experiment']['train_subjects'] = folds[run][0]
+            config['experiment']['val_subjects'] = folds[run][1]
+            config['experiment']['test_subjects'] = folds[run][2]
+        cae = train_test_autoencoder(args, config)
+        cae.eval()
+        train_inp, test_inp, train_feat, test_feat, train_label, test_label = extract_features(args, config, cae)
+        if config['experiment']['prediction_type'] == 'reconstruction_error':
+            reconstruction_thresholding(test_inp, test_label, test_feat)
+        elif config['experiment']['prediction_type'] == 'oc-svm':
+            train_test_one_class_svm(args, config, train_feat.detach().numpy(), test_feat.detach().numpy(), train_label, test_label)
+        
 
 if __name__ == '__main__':
     main()

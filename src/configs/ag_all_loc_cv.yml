@@ -33,7 +33,8 @@ experiment:
   # data splits
 
   data_splits_autoencoder:
-  cross_val: True
+  loso_cv: True
+  loso_cv_subjects: ['amagross', 'Denys']
   use_validation: False
   
   train_subjects: ['amagross']

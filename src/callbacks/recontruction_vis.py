@@ -60,7 +60,8 @@ class ReconstructionVis(pl.Callback):
     def on_test_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         gt = np.array(self.gt)
         pairwise_loss = np.array(self.pairwise_loss)
-        visualize_loss_distribution(gt, pairwise_loss, 'loss_dist', save_path='results/reconstruction/test', id_to_act=self.id_to_act)
+        threshold = visualize_loss_distribution(gt, pairwise_loss, 'loss_dist', save_path='results/reconstruction/test', id_to_act=self.id_to_act)
+        self.log('threshold', threshold)
         
         idxs = np.random.randint(0, len(self.inputs) - 1, 20)
         for i, idx in enumerate(idxs): 
@@ -86,6 +87,7 @@ def visualize_loss_distribution(gt, pairwise_loss, name, save_path='results/reco
         print(f'Mean loss {id_to_act[act]}', *conf_int)
         if id_to_act[act] == 'CYCLING':
             cycling_upper = conf_int[-1]
+            cycling_mean = conf_int[0]
         else:
             if conf_int[1] < lowest_other:
                 lowest_other = conf_int[1]
@@ -94,11 +96,13 @@ def visualize_loss_distribution(gt, pairwise_loss, name, save_path='results/reco
         else:
             df_list.extend([(loss, id_to_act[act]) for loss in loss_act])
     df = pd.DataFrame(df_list, columns=['loss', 'label'])
+    threshold = (lowest_other + cycling_upper) / 2 if lowest_other is not None else cycling_mean + 2 * (cycling_upper - cycling_mean)
     print('Suggested threshold:', (lowest_other + cycling_upper) / 2)
     sns.displot(data=df, x='loss', hue='label', kind='kde', common_norm=False)
     plt.show()
     plt.savefig(f'{save_path}/{name}.png')
     plt.close()
+    return threshold
 
 
 def visualize_reconstruction(inp, rec, name, nsd=None, save_path='results/reconstruction/train'):
