@@ -1,0 +1,21 @@
+{
+  "sessionSchemaVersion": "1.0.0",
+  "sensorReadingSchemaVersion": "1.0.0",
+  "sessionId": "Denys-1678895240206",
+  "accountId": "Denys",
+  "createdAt": "2023-03-15T15:47:20.206Z",
+  "destroyedAt": "2023-03-15T15:58:16.454Z",
+  "sessionMetadata": {
+    "appVersion": "1.0.0",
+    "activity": "CYCLING",
+    "sessionMetadataSchemaVersion": "1.0.2",
+    "operatingSystem": "ANDROID",
+    "smartphoneModel": "OnePlus KB2003",
+    "smartphonePosition": "PANTS_POCKET",
+    "sensorUpdateInterval": 30,
+    "isAccelerometerAvailable": true,
+    "isGyroscopeAvailable": true,
+    "isMagnetometerAvailable": true
+  },
+  "totalSensorReadings": 36750
+}
