@@ -3,8 +3,10 @@
 
 # data
 *data/
+test_chunks/
 
 # models, logs and results
+model_assets/
 model_weights/
 results/
 train_logs/
