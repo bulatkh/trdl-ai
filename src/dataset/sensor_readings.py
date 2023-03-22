@@ -10,17 +10,23 @@ from tslearn.metrics import dtw_path
 
 
 class SensorReadings:
-    def __init__(self, session_id, data_path, activity=None, phone_position=None, model=None, avg_duplicate_ts=False, use_sensors=['ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']):
+    def __init__(self, session_id=None, data=None, activity=None, phone_position=None, model=None, avg_duplicate_ts=False, use_sensors=['ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER'], chunk=False):
         self.session_id = session_id
-        self.data_path = data_path
+        self.data = data
         self.activity = activity
         self.phone_position = phone_position
         self.model = model
         self.avg_duplicate_ts = avg_duplicate_ts
+        self.chunk = chunk
         self.device_data = self.read_data(use_sensors)
-    
+        
     def read_data(self, use_sensors=['ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']):
-        data = pd.read_csv(self.data_path)
+        # TODO: a separate class for chunks
+        if self.chunk:
+            data = pd.DataFrame(np.array(self.data))
+            data.columns = ['timestamp', 'sensor', 'x', 'y', 'z']
+        else:
+            data = pd.read_csv(self.data)
         self.sensors = []
         all_sensors = list(sorted(data.sensor.unique()))
         for s in all_sensors:
